@@ -767,9 +767,6 @@ function _cl_billing_pricing_actions_options() {
 function cl_billing_pricing_process_line_item($line_item) {
 
   $li_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
-  // These make convenient booleans!
-  $order = $li_wrapper->order->value();
-  $license = $li_wrapper->cl_billing_license->value();
 
   // @todo: Figure out what kind of line item this is (usage or plan).
   // @todo: Remember why I made this comment - it looks like we don't need to do
@@ -781,7 +778,8 @@ function cl_billing_pricing_process_line_item($line_item) {
   $selected_pricing_field_items = array();
 
   // Figure out if the license *has* any cl_billing_pricing-type fields.
-  if ($license) {
+  if ($li_wrapper->cl_billing_license->getIdentifier()) {
+    $license = $li_wrapper->cl_billing_license->value();
     $license_instances = field_info_instances('commerce_license', $license->type);
     foreach ($license_instances as $fieldname => $instance) {
       if (!empty($pricing_fields[$fieldname])) {
@@ -800,8 +798,8 @@ function cl_billing_pricing_process_line_item($line_item) {
   }
 
   // Do the same thing for the order owner, if any.
-  if ($order) {
-    list(, , $account_type) = entity_extract_ids('user', $li_wrapper->order->owner);
+  if ($li_wrapper->order->getIdentifier()) {
+    list(, , $account_type) = entity_extract_ids('user', $li_wrapper->order->owner->value());
     $account_instances = field_info_instances('user', $account_type);
     foreach ($account_instances as $fieldname => $instance) {
       if (!empty($pricing_fields[$fieldname])) {
